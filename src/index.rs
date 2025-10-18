@@ -59,33 +59,41 @@ impl IndexManager {
 
     /// Download and import FreeDict dictionary
     pub fn import_freedict(&self, dict_name: &str) -> Result<()> {
-        let (url_dict, url_index, language) = match dict_name {
+        let (url, language, base_name) = match dict_name {
             "freedict-eng-deu" => (
-                "https://github.com/freedict/fd-dictionaries/raw/master/eng-deu/eng-deu.dict.dz",
-                "https://github.com/freedict/fd-dictionaries/raw/master/eng-deu/eng-deu.index",
+                "https://download.freedict.org/dictionaries/eng-deu/1.9-fd1/freedict-eng-deu-1.9-fd1.dictd.tar.xz",
                 "en-de",
+                "eng-deu",
             ),
             "freedict-deu-eng" => (
-                "https://github.com/freedict/fd-dictionaries/raw/master/deu-eng/deu-eng.dict.dz",
-                "https://github.com/freedict/fd-dictionaries/raw/master/deu-eng/deu-eng.index",
+                "https://download.freedict.org/dictionaries/deu-eng/1.9-fd1/freedict-deu-eng-1.9-fd1.dictd.tar.xz",
                 "de-en",
+                "deu-eng",
             ),
             _ => anyhow::bail!("Unknown dictionary: {}", dict_name),
         };
 
         info!("Downloading {} from FreeDict", dict_name);
 
-        let dict_path = self.data_dir.join(format!("{}.dict.dz", dict_name));
-        let index_path = self.data_dir.join(format!("{}.index", dict_name));
+        // Download tar.xz archive
+        let tar_path = self.data_dir.join(format!("{}.tar.xz", dict_name));
+        download_file(url, &tar_path)?;
 
-        // Download files
-        download_file(url_dict, &dict_path)?;
-        download_file(url_index, &index_path)?;
+        info!("Extracting archive...");
+
+        // Extract the tar.xz archive
+        extract_tar_xz(&tar_path, &self.data_dir)?;
+
+        // Find the extracted .dict.dz and .index files by searching recursively
+        let (dict_path, index_path) = find_dict_files(&self.data_dir, base_name)?;
 
         info!("Downloaded successfully, parsing...");
 
         // Parse and import
         self.import_local(&dict_path, &index_path, language)?;
+
+        // Clean up tar archive
+        let _ = fs::remove_file(&tar_path);
 
         Ok(())
     }
@@ -174,6 +182,88 @@ fn download_file<P: AsRef<Path>>(url: &str, dest: P) -> Result<()> {
     let content = response.bytes()?;
     std::io::copy(&mut content.as_ref(), &mut file)?;
     Ok(())
+}
+
+/// Extract a tar.xz archive
+fn extract_tar_xz<P: AsRef<Path>>(archive_path: P, dest_dir: P) -> Result<()> {
+    use std::process::Command;
+
+    // Use system tar command for .tar.xz extraction
+    let output = Command::new("tar")
+        .arg("-xJf")
+        .arg(archive_path.as_ref())
+        .arg("-C")
+        .arg(dest_dir.as_ref())
+        .output()
+        .context("Failed to execute tar command. Make sure 'tar' is installed.")?;
+
+    if !output.status.success() {
+        anyhow::bail!(
+            "Failed to extract archive: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    Ok(())
+}
+
+/// Recursively find .dict.dz and .index files in a directory
+fn find_dict_files<P: AsRef<Path>>(base_dir: P, base_name: &str) -> Result<(PathBuf, PathBuf)> {
+    let mut dict_file = None;
+    let mut index_file = None;
+
+    // Walk through the directory tree
+    fn walk_dir(
+        dir: &Path,
+        base_name: &str,
+        dict_file: &mut Option<PathBuf>,
+        index_file: &mut Option<PathBuf>,
+    ) -> Result<()> {
+        if dir.is_dir() {
+            for entry in fs::read_dir(dir)? {
+                let entry = entry?;
+                let path = entry.path();
+
+                if path.is_dir() {
+                    walk_dir(&path, base_name, dict_file, index_file)?;
+                } else if let Some(file_name) = path.file_name().and_then(|n| n.to_str()) {
+                    // Look for files matching the pattern
+                    if file_name.ends_with(".dict.dz") && file_name.contains(base_name) {
+                        *dict_file = Some(path.clone());
+                    } else if file_name.ends_with(".index") && file_name.contains(base_name) {
+                        *index_file = Some(path.clone());
+                    }
+                }
+
+                // Early exit if we found both files
+                if dict_file.is_some() && index_file.is_some() {
+                    return Ok(());
+                }
+            }
+        }
+        Ok(())
+    }
+
+    walk_dir(base_dir.as_ref(), base_name, &mut dict_file, &mut index_file)?;
+
+    match (dict_file, index_file) {
+        (Some(dict), Some(index)) => Ok((dict, index)),
+        (None, Some(_)) => anyhow::bail!(
+            "Found .index file but not .dict.dz file for '{}' in {:?}",
+            base_name,
+            base_dir.as_ref()
+        ),
+        (Some(_), None) => anyhow::bail!(
+            "Found .dict.dz file but not .index file for '{}' in {:?}",
+            base_name,
+            base_dir.as_ref()
+        ),
+        (None, None) => anyhow::bail!(
+            "Could not find dictionary files for '{}' in {:?}. Files may not have been extracted properly.",
+            base_name,
+            base_dir.as_ref()
+        ),
+    }
 }
 
 /// Get the total size of a directory

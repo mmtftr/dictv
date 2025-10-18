@@ -62,18 +62,20 @@ The data directory location is displayed when running import, rebuild, serve, or
 
 ### 1. Import Dictionary Data
 
-Import FreeDict German-English dictionary:
+Import FreeDict German-English dictionary (517,534 entries):
 
 ```bash
 dictv import --download freedict-deu-eng
 ```
 
 This will:
-- Download dictionary files to `~/.dictv/data/`
+- Download from official FreeDict server (~21 MB)
+- Extract and parse dictionary files
 - Build search index in `~/.dictv/index/`
 - Display data directory location
+- Takes ~40-60 seconds on first import
 
-Import FreeDict English-German dictionary:
+Import FreeDict English-German dictionary (460,315 entries):
 
 ```bash
 dictv import --download freedict-eng-deu
@@ -84,6 +86,8 @@ Or import from local DICTD files:
 ```bash
 dictv import --local dict.dict.dz --index dict.index --lang de-en
 ```
+
+**Note**: FreeDict files use base64-encoded offsets which are automatically handled by the parser.
 
 ### 2. Start the Server
 

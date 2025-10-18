@@ -14,7 +14,7 @@ struct IndexEntry {
     length: u64,
 }
 
-/// Parse DICTD .index file
+/// Parse DICTD .index file (supports both numeric and base64-encoded offsets)
 pub fn parse_index<P: AsRef<Path>>(path: P) -> Result<Vec<IndexEntry>> {
     let file = File::open(path.as_ref())
         .context(format!("Failed to open index file: {:?}", path.as_ref()))?;
@@ -27,12 +27,19 @@ pub fn parse_index<P: AsRef<Path>>(path: P) -> Result<Vec<IndexEntry>> {
 
         if parts.len() >= 3 {
             let word = parts[0].to_string();
-            let offset = parts[1]
-                .parse::<u64>()
-                .context(format!("Invalid offset in index: {}", parts[1]))?;
-            let length = parts[2]
-                .parse::<u64>()
-                .context(format!("Invalid length in index: {}", parts[2]))?;
+
+            // Try to parse as number first, then as base64
+            let offset = match parts[1].parse::<u64>() {
+                Ok(n) => n,
+                Err(_) => decode_base64_offset(parts[1])
+                    .context(format!("Invalid offset in index: {}", parts[1]))?,
+            };
+
+            let length = match parts[2].parse::<u64>() {
+                Ok(n) => n,
+                Err(_) => decode_base64_offset(parts[2])
+                    .context(format!("Invalid length in index: {}", parts[2]))?,
+            };
 
             entries.push(IndexEntry {
                 word,
@@ -43,6 +50,22 @@ pub fn parse_index<P: AsRef<Path>>(path: P) -> Result<Vec<IndexEntry>> {
     }
 
     Ok(entries)
+}
+
+/// Decode base64-encoded offset used in FreeDict index files
+fn decode_base64_offset(encoded: &str) -> Result<u64> {
+    // FreeDict uses a custom base64 variant for encoding offsets
+    // The alphabet is: 0-9, A-Z, a-z, +, /
+    const ALPHABET: &[u8] = b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/";
+
+    let mut result: u64 = 0;
+    for ch in encoded.bytes() {
+        let value = ALPHABET.iter().position(|&c| c == ch)
+            .ok_or_else(|| anyhow::anyhow!("Invalid base64 character: {}", ch as char))? as u64;
+        result = result * 64 + value;
+    }
+
+    Ok(result)
 }
 
 /// Parse DICTD .dict.dz (gzipped dictionary file)
