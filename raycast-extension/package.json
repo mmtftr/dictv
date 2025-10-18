@@ -1,0 +1,121 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "dictv",
+  "title": "dictv - German-English Dictionary",
+  "description": "Search German-English dictionary with fuzzy matching",
+  "icon": "command-icon.png",
+  "author": "mmtf",
+  "license": "MIT",
+  "preferences": [
+    {
+      "required": false,
+      "name": "serverUrl",
+      "title": "Server URL",
+      "description": "The URL of the dictv server",
+      "type": "textfield",
+      "default": "http://localhost:3000"
+    },
+    {
+      "required": false,
+      "name": "defaultLanguage",
+      "title": "Default Language Direction",
+      "description": "Default search direction",
+      "type": "dropdown",
+      "default": "de-en",
+      "data": [
+        {
+          "title": "German → English",
+          "value": "de-en"
+        },
+        {
+          "title": "English → German",
+          "value": "en-de"
+        }
+      ]
+    },
+    {
+      "required": false,
+      "name": "defaultSearchMode",
+      "title": "Default Search Mode",
+      "description": "Default search mode for queries",
+      "type": "dropdown",
+      "default": "fuzzy",
+      "data": [
+        {
+          "title": "Fuzzy (handles typos)",
+          "value": "fuzzy"
+        },
+        {
+          "title": "Exact (exact matches only)",
+          "value": "exact"
+        },
+        {
+          "title": "Prefix (starts with...)",
+          "value": "prefix"
+        }
+      ]
+    },
+    {
+      "required": false,
+      "name": "maxDistance",
+      "title": "Fuzzy Match Distance",
+      "description": "Maximum edit distance for fuzzy matching (1-2)",
+      "type": "dropdown",
+      "default": "2",
+      "data": [
+        {
+          "title": "1 (stricter)",
+          "value": "1"
+        },
+        {
+          "title": "2 (more lenient)",
+          "value": "2"
+        }
+      ]
+    },
+    {
+      "required": false,
+      "name": "saveToHistoryOnClear",
+      "title": "Save to History on Clear",
+      "description": "Save the last search query to history when search is cleared",
+      "type": "checkbox",
+      "default": true
+    }
+  ],
+  "commands": [
+    {
+      "name": "search",
+      "title": "Search Dictionary",
+      "subtitle": "dictv",
+      "description": "Search German-English dictionary",
+      "mode": "view"
+    },
+    {
+      "name": "history",
+      "title": "Search History",
+      "subtitle": "dictv",
+      "description": "View previous search queries and results",
+      "mode": "view"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.46.0",
+    "@raycast/utils": "^1.4.16",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.202",
+    "@types/node": "^18.8.3",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "prettier": "^3.0.0",
+    "typescript": "^4.4.3"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "lint": "ray lint"
+  }
+}
