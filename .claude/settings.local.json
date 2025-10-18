@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo check)",
+      "Bash(cargo build --release)",
+      "Bash(cargo test --lib)",
+      "Bash(cargo test)",
+      "Bash(cargo test test_diacritic_handling -- --nocapture)",
+      "Bash(cargo test test_fuzzy_search_accuracy_matrix -- --nocapture)",
+      "Bash(cargo test test_search_prefix -- --nocapture)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
