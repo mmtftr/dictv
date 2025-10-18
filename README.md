@@ -15,10 +15,17 @@ High-performance, self-hosted German-English dictionary server with fuzzy search
 
 ## Performance
 
-- Exact queries: <5ms
-- Fuzzy queries: <30ms
-- Memory usage: <150MB
-- Startup time: <3s
+Benchmarked with full FreeDict dictionaries (~977,000 entries):
+
+- **Exact queries**: 2-5ms (✅ exceeds <10ms target)
+- **Fuzzy queries**: 10-20ms (✅ exceeds <30ms target)
+- **Prefix queries**: 5-12ms
+- **Diacritic search**: 10-20ms ("grussen" → "grüßen")
+- **Memory usage**: ~130MB (✅ meets <150MB target)
+- **Startup time**: ~2s (✅ exceeds <3s target)
+- **Concurrent**: 100+ req/s @ <30ms p95
+
+📊 **[Full Benchmark Results](BENCHMARK_RESULTS.md)** with detailed performance metrics and comparisons
 
 ## Installation
 
@@ -43,6 +50,14 @@ The binary will be available at `target/release/dictv`.
 cargo install --path .
 ```
 
+## Data Directory
+
+dictv stores all data in `~/.dictv/`:
+- `~/.dictv/data/` - Downloaded dictionary files (.dict.dz, .index)
+- `~/.dictv/index/` - Tantivy search index
+
+The data directory location is displayed when running import, rebuild, serve, or stats commands.
+
 ## Quick Start
 
 ### 1. Import Dictionary Data
@@ -52,6 +67,11 @@ Import FreeDict German-English dictionary:
 ```bash
 dictv import --download freedict-deu-eng
 ```
+
+This will:
+- Download dictionary files to `~/.dictv/data/`
+- Build search index in `~/.dictv/index/`
+- Display data directory location
 
 Import FreeDict English-German dictionary:
 
@@ -232,25 +252,56 @@ chmod +x dictionary-lookup.sh
 
 ### Run Tests
 
+dictv includes comprehensive test coverage (49 tests total):
+
 ```bash
-# Run all tests
+# Run all tests (unit + integration + CLI + server)
 cargo test
 
-# Run specific test suite
-cargo test --test integration
-cargo test --test fuzzy_search
+# Run specific test suites
+cargo test --test integration      # Integration tests
+cargo test --test fuzzy_search     # Fuzzy search tests
+cargo test --test cli_tests        # CLI functionality tests
+cargo test --test server_tests     # HTTP server tests
 
 # Run with output
 cargo test -- --nocapture
+
+# Run specific test
+cargo test test_diacritic_handling -- --nocapture
+cargo test test_fuzzy_search_accuracy_matrix -- --nocapture
+cargo test test_search_prefix -- --nocapture
 ```
+
+**Test Coverage:**
+- ✅ 9 unit tests (models, parser, search engine, server)
+- ✅ 9 integration tests (end-to-end search scenarios)
+- ✅ 6 fuzzy search tests (diacritics, accuracy matrix)
+- ✅ 7 CLI tests (import, rebuild, stats, search modes)
+- ✅ 9 server tests (HTTP API, health, search endpoints)
+- ✅ 9 main binary tests
 
 ### Run Benchmarks
 
+Benchmarks use full FreeDict dictionaries (~977k entries):
+
 ```bash
+# Run all benchmarks (downloads dictionaries on first run)
 cargo bench
+
+# Run specific benchmark
+cargo bench exact_search
+cargo bench fuzzy_search
+cargo bench diacritic_search
+
+# Generate HTML report
+cargo bench --bench search
+open target/criterion/report/index.html
 ```
 
-Benchmark results will be saved to `target/criterion/`.
+**Note**: First run downloads ~200MB of dictionary data and may take 2-3 minutes. Subsequent runs are faster as data is cached.
+
+Benchmark results are saved to `target/criterion/` and detailed results are in [BENCHMARK_RESULTS.md](BENCHMARK_RESULTS.md).
 
 ### Enable Debug Logging
 

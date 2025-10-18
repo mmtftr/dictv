@@ -103,14 +103,21 @@ async fn main() -> Result<()> {
         } => {
             let manager = IndexManager::default()?;
 
+            // Show data directory location
+            let home = dirs::home_dir().unwrap_or_default();
+            let data_dir = home.join(".dictv");
+            println!("📁 Data directory: {}", data_dir.display());
+            println!("   - Dictionaries: {}/data", data_dir.display());
+            println!("   - Search index: {}/index\n", data_dir.display());
+
             if let Some(dict_name) = download {
                 info!("Downloading dictionary: {}", dict_name);
                 manager.import_freedict(&dict_name)?;
-                println!("Successfully imported {}", dict_name);
+                println!("✓ Successfully imported {}", dict_name);
             } else if let (Some(dict_path), Some(index_path)) = (local, index) {
                 info!("Importing local dictionary: {}", dict_path);
                 manager.import_local(&dict_path, &index_path, &lang)?;
-                println!("Successfully imported dictionary");
+                println!("✓ Successfully imported dictionary");
             } else {
                 eprintln!("Error: Either --download or both --local and --index must be provided");
                 std::process::exit(1);
@@ -119,16 +126,25 @@ async fn main() -> Result<()> {
 
         Commands::Rebuild => {
             let manager = IndexManager::default()?;
+
+            let home = dirs::home_dir().unwrap_or_default();
+            let data_dir = home.join(".dictv");
+            println!("📁 Data directory: {}", data_dir.display());
+
             info!("Rebuilding index...");
             manager.rebuild()?;
-            println!("Index rebuilt successfully");
+            println!("✓ Index rebuilt successfully");
         }
 
         Commands::Stats => {
             let manager = IndexManager::default()?;
             let (total, en_de, de_en, size) = manager.stats()?;
 
-            println!("Dictionary Statistics:");
+            let home = dirs::home_dir().unwrap_or_default();
+            let data_dir = home.join(".dictv");
+
+            println!("📊 Dictionary Statistics:");
+            println!("  Data directory: {}", data_dir.display());
             println!("  Total entries: {}", total);
             println!("  English → German: {}", en_de);
             println!("  German → English: {}", de_en);
@@ -144,7 +160,10 @@ async fn main() -> Result<()> {
             let manager = IndexManager::default()?;
             let engine = SearchEngine::new(manager.index_dir())?;
 
-            println!("Starting server on http://localhost:{}", port);
+            let home = dirs::home_dir().unwrap_or_default();
+            let data_dir = home.join(".dictv");
+            println!("📁 Using data directory: {}", data_dir.display());
+            println!("🚀 Starting server on http://localhost:{}", port);
             server::serve(engine, port).await?;
         }
 
