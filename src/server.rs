@@ -1,9 +1,9 @@
 use axum::{
+    Router,
     extract::{Query, State},
     http::StatusCode,
     response::{IntoResponse, Json},
     routing::get,
-    Router,
 };
 use std::sync::Arc;
 use std::time::Instant;
@@ -50,9 +50,7 @@ async fn search_handler(
     }
 
     if params.max_distance > 2 {
-        return Err(AppError::BadRequest(
-            "max_distance must be 0-2".to_string(),
-        ));
+        return Err(AppError::BadRequest("max_distance must be 0-2".to_string()));
     }
 
     // Perform search
@@ -128,10 +126,7 @@ impl IntoResponse for AppError {
 }
 
 /// Start the HTTP server
-pub async fn serve(
-    search_engine: SearchEngine,
-    port: u16,
-) -> anyhow::Result<()> {
+pub async fn serve(search_engine: SearchEngine, port: u16) -> anyhow::Result<()> {
     let state = AppState::new(search_engine);
     let app = create_router(state);
 

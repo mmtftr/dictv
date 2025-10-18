@@ -46,11 +46,7 @@ fn test_fuzzy_search_single_typo() {
             "house, building, home".to_string(),
             "de-en".to_string(),
         ),
-        DictionaryEntry::new(
-            "Maus".to_string(),
-            "mouse".to_string(),
-            "de-en".to_string(),
-        ),
+        DictionaryEntry::new("Maus".to_string(), "mouse".to_string(), "de-en".to_string()),
     ];
 
     SearchEngine::build_index(temp_dir.path(), entries).unwrap();
@@ -115,21 +111,13 @@ fn test_prefix_search() {
     let temp_dir = TempDir::new().unwrap();
 
     let entries = vec![
-        DictionaryEntry::new(
-            "Haus".to_string(),
-            "house".to_string(),
-            "de-en".to_string(),
-        ),
+        DictionaryEntry::new("Haus".to_string(), "house".to_string(), "de-en".to_string()),
         DictionaryEntry::new(
             "Haustür".to_string(),
             "front door".to_string(),
             "de-en".to_string(),
         ),
-        DictionaryEntry::new(
-            "Auto".to_string(),
-            "car".to_string(),
-            "de-en".to_string(),
-        ),
+        DictionaryEntry::new("Auto".to_string(), "car".to_string(), "de-en".to_string()),
     ];
 
     SearchEngine::build_index(temp_dir.path(), entries).unwrap();
@@ -148,16 +136,8 @@ fn test_language_filtering() {
     let temp_dir = TempDir::new().unwrap();
 
     let entries = vec![
-        DictionaryEntry::new(
-            "Haus".to_string(),
-            "house".to_string(),
-            "de-en".to_string(),
-        ),
-        DictionaryEntry::new(
-            "house".to_string(),
-            "Haus".to_string(),
-            "en-de".to_string(),
-        ),
+        DictionaryEntry::new("Haus".to_string(), "house".to_string(), "de-en".to_string()),
+        DictionaryEntry::new("house".to_string(), "Haus".to_string(), "en-de".to_string()),
     ];
 
     SearchEngine::build_index(temp_dir.path(), entries).unwrap();

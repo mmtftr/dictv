@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Language {
-    EnDe,  // English to German
-    DeEn,  // German to English
+    EnDe, // English to German
+    DeEn, // German to English
 }
 
 impl Language {
@@ -33,9 +33,9 @@ impl std::str::FromStr for Language {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum SearchMode {
-    Exact,   // Exact word match
-    Fuzzy,   // Fuzzy match with edit distance
-    Prefix,  // Prefix matching
+    Exact,  // Exact word match
+    Fuzzy,  // Fuzzy match with edit distance
+    Prefix, // Prefix matching
 }
 
 impl std::str::FromStr for SearchMode {

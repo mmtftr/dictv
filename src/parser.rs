@@ -60,8 +60,11 @@ fn decode_base64_offset(encoded: &str) -> Result<u64> {
 
     let mut result: u64 = 0;
     for ch in encoded.bytes() {
-        let value = ALPHABET.iter().position(|&c| c == ch)
-            .ok_or_else(|| anyhow::anyhow!("Invalid base64 character: {}", ch as char))? as u64;
+        let value = ALPHABET
+            .iter()
+            .position(|&c| c == ch)
+            .ok_or_else(|| anyhow::anyhow!("Invalid base64 character: {}", ch as char))?
+            as u64;
         result = result * 64 + value;
     }
 
@@ -77,8 +80,10 @@ pub fn parse_dict<P: AsRef<Path>>(
     let index_entries = parse_index(index_path)?;
 
     // Open and decompress the dictionary file
-    let file = File::open(dict_path.as_ref())
-        .context(format!("Failed to open dict file: {:?}", dict_path.as_ref()))?;
+    let file = File::open(dict_path.as_ref()).context(format!(
+        "Failed to open dict file: {:?}",
+        dict_path.as_ref()
+    ))?;
 
     let mut decoder = GzDecoder::new(file);
     let mut content = Vec::new();
@@ -92,9 +97,7 @@ pub fn parse_dict<P: AsRef<Path>>(
 
         if end <= content.len() {
             let definition_bytes = &content[start..end];
-            let definition = String::from_utf8_lossy(definition_bytes)
-                .trim()
-                .to_string();
+            let definition = String::from_utf8_lossy(definition_bytes).trim().to_string();
 
             entries.push(DictionaryEntry::new(
                 index_entry.word.clone(),

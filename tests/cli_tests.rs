@@ -15,16 +15,8 @@ fn test_cli_import_and_search() {
             "house, building".to_string(),
             "de-en".to_string(),
         ),
-        DictionaryEntry::new(
-            "Auto".to_string(),
-            "car".to_string(),
-            "de-en".to_string(),
-        ),
-        DictionaryEntry::new(
-            "Buch".to_string(),
-            "book".to_string(),
-            "de-en".to_string(),
-        ),
+        DictionaryEntry::new("Auto".to_string(), "car".to_string(), "de-en".to_string()),
+        DictionaryEntry::new("Buch".to_string(), "book".to_string(), "de-en".to_string()),
     ];
 
     // Build index
@@ -109,7 +101,11 @@ fn test_fuzzy_search_via_cli() {
 
     let entries = vec![
         DictionaryEntry::new("Haus".to_string(), "house".to_string(), "de-en".to_string()),
-        DictionaryEntry::new("grüßen".to_string(), "to greet".to_string(), "de-en".to_string()),
+        DictionaryEntry::new(
+            "grüßen".to_string(),
+            "to greet".to_string(),
+            "de-en".to_string(),
+        ),
     ];
 
     SearchEngine::build_index(manager.index_dir(), entries).unwrap();
@@ -137,7 +133,11 @@ fn test_prefix_search_via_cli() {
 
     let entries = vec![
         DictionaryEntry::new("Haus".to_string(), "house".to_string(), "de-en".to_string()),
-        DictionaryEntry::new("Haustür".to_string(), "front door".to_string(), "de-en".to_string()),
+        DictionaryEntry::new(
+            "Haustür".to_string(),
+            "front door".to_string(),
+            "de-en".to_string(),
+        ),
         DictionaryEntry::new("Auto".to_string(), "car".to_string(), "de-en".to_string()),
     ];
 

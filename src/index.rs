@@ -244,7 +244,12 @@ fn find_dict_files<P: AsRef<Path>>(base_dir: P, base_name: &str) -> Result<(Path
         Ok(())
     }
 
-    walk_dir(base_dir.as_ref(), base_name, &mut dict_file, &mut index_file)?;
+    walk_dir(
+        base_dir.as_ref(),
+        base_name,
+        &mut dict_file,
+        &mut index_file,
+    )?;
 
     match (dict_file, index_file) {
         (Some(dict), Some(index)) => Ok((dict, index)),

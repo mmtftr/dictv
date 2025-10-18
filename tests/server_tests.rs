@@ -3,7 +3,7 @@ use dictv::models::DictionaryEntry;
 use dictv::search::SearchEngine;
 use dictv::server;
 use tempfile::TempDir;
-use tokio::time::{sleep, Duration};
+use tokio::time::{Duration, sleep};
 
 use std::sync::atomic::{AtomicU16, Ordering};
 
@@ -16,11 +16,27 @@ async fn setup_test_server() -> (TempDir, u16) {
 
     // Create test data
     let entries = vec![
-        DictionaryEntry::new("Haus".to_string(), "house, building".to_string(), "de-en".to_string()),
-        DictionaryEntry::new("Auto".to_string(), "car, automobile".to_string(), "de-en".to_string()),
+        DictionaryEntry::new(
+            "Haus".to_string(),
+            "house, building".to_string(),
+            "de-en".to_string(),
+        ),
+        DictionaryEntry::new(
+            "Auto".to_string(),
+            "car, automobile".to_string(),
+            "de-en".to_string(),
+        ),
         DictionaryEntry::new("Buch".to_string(), "book".to_string(), "de-en".to_string()),
-        DictionaryEntry::new("grüßen".to_string(), "to greet".to_string(), "de-en".to_string()),
-        DictionaryEntry::new("house".to_string(), "Haus, Gebäude".to_string(), "en-de".to_string()),
+        DictionaryEntry::new(
+            "grüßen".to_string(),
+            "to greet".to_string(),
+            "de-en".to_string(),
+        ),
+        DictionaryEntry::new(
+            "house".to_string(),
+            "Haus, Gebäude".to_string(),
+            "en-de".to_string(),
+        ),
     ];
 
     SearchEngine::build_index(manager.index_dir(), entries).unwrap();

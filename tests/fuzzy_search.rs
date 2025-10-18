@@ -9,10 +9,22 @@ fn test_fuzzy_search_accuracy_matrix() {
 
     let entries = vec![
         DictionaryEntry::new("Haus".to_string(), "house".to_string(), "de-en".to_string()),
-        DictionaryEntry::new("grüßen".to_string(), "to greet".to_string(), "de-en".to_string()),
-        DictionaryEntry::new("Straße".to_string(), "street".to_string(), "de-en".to_string()),
+        DictionaryEntry::new(
+            "grüßen".to_string(),
+            "to greet".to_string(),
+            "de-en".to_string(),
+        ),
+        DictionaryEntry::new(
+            "Straße".to_string(),
+            "street".to_string(),
+            "de-en".to_string(),
+        ),
         DictionaryEntry::new("Buch".to_string(), "book".to_string(), "de-en".to_string()),
-        DictionaryEntry::new("Schule".to_string(), "school".to_string(), "de-en".to_string()),
+        DictionaryEntry::new(
+            "Schule".to_string(),
+            "school".to_string(),
+            "de-en".to_string(),
+        ),
     ];
 
     SearchEngine::build_index(temp_dir.path(), entries).unwrap();
@@ -20,13 +32,13 @@ fn test_fuzzy_search_accuracy_matrix() {
 
     // Test cases: (query, expected_word, max_distance)
     let test_cases = vec![
-        ("Haus", "haus", 0),        // Exact match
-        ("Hauss", "haus", 1),       // Single typo
-        ("Haaus", "haus", 2),       // Double typo
-        ("grussen", "grüßen", 2),   // Diacritic variation
-        ("Strasse", "straße", 2),   // ß vs ss
-        ("Bch", "buch", 1),         // Missing character
-        ("Schuule", "schule", 1),   // Extra character
+        ("Haus", "haus", 0),      // Exact match
+        ("Hauss", "haus", 1),     // Single typo
+        ("Haaus", "haus", 2),     // Double typo
+        ("grussen", "grüßen", 2), // Diacritic variation
+        ("Strasse", "straße", 2), // ß vs ss
+        ("Bch", "buch", 1),       // Missing character
+        ("Schuule", "schule", 1), // Extra character
     ];
 
     for (query, expected, max_distance) in test_cases {
@@ -57,9 +69,21 @@ fn test_diacritic_handling() {
     let temp_dir = TempDir::new().unwrap();
 
     let entries = vec![
-        DictionaryEntry::new("grüßen".to_string(), "to greet".to_string(), "de-en".to_string()),
-        DictionaryEntry::new("Müller".to_string(), "Miller".to_string(), "de-en".to_string()),
-        DictionaryEntry::new("schön".to_string(), "beautiful".to_string(), "de-en".to_string()),
+        DictionaryEntry::new(
+            "grüßen".to_string(),
+            "to greet".to_string(),
+            "de-en".to_string(),
+        ),
+        DictionaryEntry::new(
+            "Müller".to_string(),
+            "Miller".to_string(),
+            "de-en".to_string(),
+        ),
+        DictionaryEntry::new(
+            "schön".to_string(),
+            "beautiful".to_string(),
+            "de-en".to_string(),
+        ),
     ];
 
     SearchEngine::build_index(temp_dir.path(), entries).unwrap();
@@ -84,7 +108,9 @@ fn test_diacritic_handling() {
             query
         );
 
-        let found = results.iter().any(|r| r.word.contains(expected) || r.word == expected);
+        let found = results
+            .iter()
+            .any(|r| r.word.contains(expected) || r.word == expected);
         assert!(
             found,
             "Expected '{}' in results for query '{}', but got: {:?}",
@@ -101,8 +127,16 @@ fn test_unicode_edge_cases() {
 
     let entries = vec![
         DictionaryEntry::new("Café".to_string(), "cafe".to_string(), "de-en".to_string()),
-        DictionaryEntry::new("naïve".to_string(), "naive".to_string(), "de-en".to_string()),
-        DictionaryEntry::new("résumé".to_string(), "resume".to_string(), "de-en".to_string()),
+        DictionaryEntry::new(
+            "naïve".to_string(),
+            "naive".to_string(),
+            "de-en".to_string(),
+        ),
+        DictionaryEntry::new(
+            "résumé".to_string(),
+            "resume".to_string(),
+            "de-en".to_string(),
+        ),
     ];
 
     SearchEngine::build_index(temp_dir.path(), entries).unwrap();
@@ -143,8 +177,16 @@ fn test_fuzzy_search_ordering() {
 
     let entries = vec![
         DictionaryEntry::new("Haus".to_string(), "house".to_string(), "de-en".to_string()),
-        DictionaryEntry::new("Hause".to_string(), "house (dative)".to_string(), "de-en".to_string()),
-        DictionaryEntry::new("Hauses".to_string(), "house's".to_string(), "de-en".to_string()),
+        DictionaryEntry::new(
+            "Hause".to_string(),
+            "house (dative)".to_string(),
+            "de-en".to_string(),
+        ),
+        DictionaryEntry::new(
+            "Hauses".to_string(),
+            "house's".to_string(),
+            "de-en".to_string(),
+        ),
     ];
 
     SearchEngine::build_index(temp_dir.path(), entries).unwrap();

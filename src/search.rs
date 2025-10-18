@@ -2,9 +2,9 @@ use anyhow::{Context, Result};
 use std::path::Path;
 use tantivy::collector::TopDocs;
 use tantivy::query::{FuzzyTermQuery, Query, QueryParser, RegexQuery};
-use tantivy::schema::{Schema, TextFieldIndexing, TextOptions, Value, STORED, STRING, TEXT};
+use tantivy::schema::{STORED, STRING, Schema, TEXT, TextFieldIndexing, TextOptions, Value};
 use tantivy::tokenizer::{AsciiFoldingFilter, LowerCaser, SimpleTokenizer, TextAnalyzer};
-use tantivy::{doc, Index, IndexReader, IndexWriter, ReloadPolicy, Term, TantivyDocument};
+use tantivy::{Index, IndexReader, IndexWriter, ReloadPolicy, TantivyDocument, Term, doc};
 use tracing::info;
 
 use crate::models::{DictionaryEntry, Language, SearchMode, SearchResult};
@@ -46,10 +46,7 @@ impl SearchEngine {
     }
 
     /// Build the index from dictionary entries
-    pub fn build_index<P: AsRef<Path>>(
-        index_path: P,
-        entries: Vec<DictionaryEntry>,
-    ) -> Result<()> {
+    pub fn build_index<P: AsRef<Path>>(index_path: P, entries: Vec<DictionaryEntry>) -> Result<()> {
         info!("Building index with {} entries", entries.len());
 
         let schema = build_schema();
@@ -222,9 +219,7 @@ fn register_tokenizer(index: &mut Index) {
         .filter(AsciiFoldingFilter)
         .build();
 
-    index
-        .tokenizers()
-        .register("custom_tokenizer", tokenizer);
+    index.tokenizers().register("custom_tokenizer", tokenizer);
 }
 
 /// Build the Tantivy schema
