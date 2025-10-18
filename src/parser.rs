@@ -54,9 +54,9 @@ pub fn parse_index<P: AsRef<Path>>(path: P) -> Result<Vec<IndexEntry>> {
 
 /// Decode base64-encoded offset used in FreeDict index files
 fn decode_base64_offset(encoded: &str) -> Result<u64> {
-    // FreeDict uses a custom base64 variant for encoding offsets
-    // The alphabet is: 0-9, A-Z, a-z, +, /
-    const ALPHABET: &[u8] = b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/";
+    // FreeDict uses standard base64 encoding for offsets
+    // The alphabet is: A-Z, a-z, 0-9, +, / (standard base64)
+    const ALPHABET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
     let mut result: u64 = 0;
     for ch in encoded.bytes() {

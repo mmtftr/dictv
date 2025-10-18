@@ -125,33 +125,9 @@ impl IndexManager {
             fs::create_dir_all(&self.index_dir)?;
         }
 
-        // Find all dictionary files
+        // Find all dictionary files (recursively)
         let mut all_entries = Vec::new();
-
-        for entry in fs::read_dir(&self.data_dir)? {
-            let entry = entry?;
-            let path = entry.path();
-
-            if path.extension().and_then(|s| s.to_str()) == Some("dz") {
-                let dict_name = path.file_stem().unwrap().to_str().unwrap();
-                let index_path = self.data_dir.join(format!("{}.index", dict_name));
-
-                if index_path.exists() {
-                    // Determine language from filename
-                    let language = if dict_name.contains("eng-deu") {
-                        "en-de"
-                    } else if dict_name.contains("deu-eng") {
-                        "de-en"
-                    } else {
-                        "unknown"
-                    };
-
-                    info!("Processing {} ({})", dict_name, language);
-                    let entries = parser::parse_dict(&path, &index_path, language)?;
-                    all_entries.extend(entries);
-                }
-            }
-        }
+        find_dict_files_recursively(&self.data_dir, &mut all_entries)?;
 
         info!("Rebuilding index with {} total entries", all_entries.len());
         SearchEngine::build_index(&self.index_dir, all_entries)?;
@@ -173,6 +149,50 @@ impl IndexManager {
     pub fn index_dir(&self) -> &Path {
         &self.index_dir
     }
+}
+
+/// Recursively find and parse dictionary files
+fn find_dict_files_recursively<P: AsRef<Path>>(
+    dir: P,
+    all_entries: &mut Vec<DictionaryEntry>,
+) -> Result<()> {
+    for entry in fs::read_dir(dir)? {
+        let entry = entry?;
+        let path = entry.path();
+
+        if path.is_dir() {
+            // Recurse into subdirectories
+            find_dict_files_recursively(&path, all_entries)?;
+        } else if path.extension().and_then(|s| s.to_str()) == Some("dz") {
+            let dict_name = path.file_stem().unwrap().to_str().unwrap();
+            // Handle .dict.dz files - remove the .dict extension to find matching .index file
+            let base_name = if dict_name.ends_with(".dict") {
+                &dict_name[..dict_name.len() - 5]
+            } else {
+                dict_name
+            };
+
+            // Look for index file in the same directory as the dict file
+            let parent_dir = path.parent().unwrap();
+            let index_path = parent_dir.join(format!("{}.index", base_name));
+
+            if index_path.exists() {
+                // Determine language from filename
+                let language = if base_name.contains("eng-deu") {
+                    "en-de"
+                } else if base_name.contains("deu-eng") {
+                    "de-en"
+                } else {
+                    "unknown"
+                };
+
+                info!("Processing {} ({})", base_name, language);
+                let entries = parser::parse_dict(&path, &index_path, language)?;
+                all_entries.extend(entries);
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Download a file from a URL

@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
 use std::path::Path;
 use tantivy::collector::TopDocs;
-use tantivy::query::{FuzzyTermQuery, Query, QueryParser, RegexQuery};
-use tantivy::schema::{STORED, STRING, Schema, TEXT, TextFieldIndexing, TextOptions, Value};
+use tantivy::query::{BooleanQuery, FuzzyTermQuery, Occur, Query, RegexQuery};
+use tantivy::schema::{STORED, STRING, Schema, TextFieldIndexing, TextOptions, Value};
 use tantivy::tokenizer::{AsciiFoldingFilter, LowerCaser, SimpleTokenizer, TextAnalyzer};
 use tantivy::{Index, IndexReader, IndexWriter, ReloadPolicy, TantivyDocument, Term, doc};
 use tracing::info;
@@ -104,9 +104,23 @@ impl SearchEngine {
                 ))
             }
             SearchMode::Fuzzy => {
-                // Fuzzy match query
+                // Combined query: exact match (boosted) + fuzzy match
                 let term = Term::from_field_text(word_field, &normalized_query);
-                Box::new(FuzzyTermQuery::new(term, max_distance, true))
+
+                // Exact match query (will be prioritized by ranking)
+                let exact_query = tantivy::query::TermQuery::new(
+                    term.clone(),
+                    tantivy::schema::IndexRecordOption::Basic,
+                );
+
+                // Fuzzy match query
+                let fuzzy_query = FuzzyTermQuery::new(term, max_distance, false);
+
+                // Combine with Boolean query (exact OR fuzzy)
+                Box::new(BooleanQuery::new(vec![
+                    (Occur::Should, Box::new(exact_query) as Box<dyn Query>),
+                    (Occur::Should, Box::new(fuzzy_query) as Box<dyn Query>),
+                ]))
             }
             SearchMode::Prefix => {
                 // Prefix query using regex
@@ -118,11 +132,16 @@ impl SearchEngine {
             }
         };
 
-        // Execute search
-        let top_docs = searcher.search(&query, &TopDocs::with_limit(limit * 2))?;
+        // Execute search - collect more results for better ranking
+        let search_limit = if mode == SearchMode::Fuzzy {
+            limit * 10 // Collect more for fuzzy to find best matches
+        } else {
+            limit * 2
+        };
+        let top_docs = searcher.search(&query, &TopDocs::with_limit(search_limit))?;
 
         let mut results = Vec::new();
-        for (_score, doc_address) in top_docs {
+        for (tantivy_score, doc_address) in top_docs {
             let retrieved_doc: TantivyDocument = searcher.doc(doc_address)?;
 
             let word = retrieved_doc
@@ -160,18 +179,33 @@ impl SearchEngine {
                 definition,
                 language: doc_language,
                 edit_distance,
-                score: Some(_score),
+                score: Some(tantivy_score),
             });
-
-            if results.len() >= limit {
-                break;
-            }
         }
 
-        // Sort by edit distance for fuzzy search
+        // Sort by relevance before limiting
         if mode == SearchMode::Fuzzy {
-            results.sort_by_key(|r| r.edit_distance.unwrap_or(255));
+            // Sort by edit distance first (exact matches at top), then by Tantivy score
+            results.sort_by(|a, b| {
+                let dist_a = a.edit_distance.unwrap_or(255);
+                let dist_b = b.edit_distance.unwrap_or(255);
+
+                match dist_a.cmp(&dist_b) {
+                    std::cmp::Ordering::Equal => {
+                        // If edit distances are equal, use Tantivy score (higher is better)
+                        let score_a = a.score.unwrap_or(0.0);
+                        let score_b = b.score.unwrap_or(0.0);
+                        score_b
+                            .partial_cmp(&score_a)
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    }
+                    other => other,
+                }
+            });
         }
+
+        // Limit results after sorting
+        results.truncate(limit);
 
         Ok(results)
     }
