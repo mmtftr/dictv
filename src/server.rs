@@ -105,7 +105,7 @@ async fn stats_handler(State(state): State<AppState>) -> Result<Json<StatsRespon
 #[derive(Debug)]
 pub enum AppError {
     BadRequest(String),
-    NotFound(String),
+    _NotFound(String),
     Internal(String),
 }
 
@@ -113,7 +113,7 @@ impl IntoResponse for AppError {
     fn into_response(self) -> axum::response::Response {
         let (status, message) = match self {
             AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg),
-            AppError::NotFound(msg) => (StatusCode::NOT_FOUND, msg),
+            AppError::_NotFound(msg) => (StatusCode::NOT_FOUND, msg),
             AppError::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
         };
 

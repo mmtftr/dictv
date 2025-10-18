@@ -33,7 +33,7 @@ fn test_end_to_end_exact_search() {
 
     assert_eq!(results.len(), 1);
     assert_eq!(results[0].word, "haus");
-    assert!(results[0].definition.contains("house"));
+    assert!(results[0].definitions[0].contains("house"));
 }
 
 #[test]

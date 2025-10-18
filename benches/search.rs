@@ -2,7 +2,7 @@ use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_ma
 use dictv::index::IndexManager;
 use dictv::models::{Language, SearchMode};
 use dictv::search::SearchEngine;
-use std::sync::{Once, OnceLock};
+use std::sync::OnceLock;
 use tempfile::TempDir;
 
 static INDEX_PATH: OnceLock<TempDir> = OnceLock::new();

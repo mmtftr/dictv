@@ -187,13 +187,14 @@ async fn main() -> Result<()> {
             } else {
                 println!("Results for '{}':\n", query);
                 for result in results {
+                    let definitions = result.definitions.join("; ");
                     if let Some(distance) = result.edit_distance {
                         println!(
                             "• {} [distance: {}]: {}",
-                            result.word, distance, result.definition
+                            result.word, distance, definitions
                         );
                     } else {
-                        println!("• {}: {}", result.word, result.definition);
+                        println!("• {}: {}", result.word, definitions);
                     }
                 }
             }

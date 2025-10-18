@@ -5,7 +5,7 @@ export interface SearchState {
 
 export interface SearchResult {
   word: string;
-  definition: string;
+  definitions?: string[]; // Multiple definitions per word (optional for backward compatibility)
   language: "de-en" | "en-de";
   edit_distance: number;
   score: number;
@@ -31,4 +31,3 @@ export type Language = "de-en" | "en-de";
 export type SearchHistoryItem = (SearchResult & { type: "result" }) | { type: "query"; query: string };
 
 export type SearchHistory = SearchHistoryItem[];
-

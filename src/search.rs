@@ -11,6 +11,7 @@ use crate::models::{DictionaryEntry, Language, SearchMode, SearchResult};
 
 /// Search engine powered by Tantivy
 pub struct SearchEngine {
+    #[allow(dead_code)]
     index: Index,
     reader: IndexReader,
     schema: Schema,
@@ -38,7 +39,7 @@ impl SearchEngine {
     }
 
     /// Create a new index at the given path
-    pub fn create_index<P: AsRef<Path>>(index_path: P) -> Result<Index> {
+    pub fn _create_index<P: AsRef<Path>>(index_path: P) -> Result<Index> {
         let schema = build_schema();
         std::fs::create_dir_all(index_path.as_ref())?;
         let index = Index::create_in_dir(index_path, schema)?;
@@ -140,7 +141,10 @@ impl SearchEngine {
         };
         let top_docs = searcher.search(&query, &TopDocs::with_limit(search_limit))?;
 
-        let mut results = Vec::new();
+        // Collect results and group by word
+        use std::collections::HashMap;
+        let mut grouped_results: HashMap<String, (Vec<String>, f32, Option<u8>)> = HashMap::new();
+
         for (tantivy_score, doc_address) in top_docs {
             let retrieved_doc: TantivyDocument = searcher.doc(doc_address)?;
 
@@ -174,14 +178,31 @@ impl SearchEngine {
                 None
             };
 
-            results.push(SearchResult {
-                word,
-                definition,
-                language: doc_language,
-                edit_distance,
-                score: Some(tantivy_score),
-            });
+            // Group definitions by word
+            grouped_results
+                .entry(word.clone())
+                .and_modify(|(defs, score, dist)| {
+                    defs.push(definition.clone());
+                    // Keep the best score and distance
+                    *score = score.max(tantivy_score);
+                    if let Some(ed) = edit_distance {
+                        *dist = Some(dist.map_or(ed, |d| d.min(ed)));
+                    }
+                })
+                .or_insert((vec![definition], tantivy_score, edit_distance));
         }
+
+        // Convert grouped results to SearchResult vec
+        let mut results: Vec<SearchResult> = grouped_results
+            .into_iter()
+            .map(|(word, (definitions, score, edit_distance))| SearchResult {
+                word,
+                definitions,
+                language: lang_str.to_string(),
+                edit_distance,
+                score: Some(score),
+            })
+            .collect();
 
         // Sort by relevance before limiting
         if mode == SearchMode::Fuzzy {
@@ -324,7 +345,7 @@ mod tests {
 
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].word, "haus");
-        assert!(results[0].definition.contains("house"));
+        assert!(results[0].definitions[0].contains("house"));
     }
 
     #[test]

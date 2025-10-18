@@ -13,7 +13,7 @@ const useSearch = (initialSearchText: string) => {
 
   const [debouncedSearch, _setDebouncedSearch] = useState<string>(initialSearchText);
   const setDebouncedSearch = useMemo(() => {
-    return debounce(_setDebouncedSearch, 150);
+    return debounce(_setDebouncedSearch, 100);
   }, [_setDebouncedSearch]);
 
   const onError = (error: Error) => {
@@ -53,7 +53,7 @@ const useSearch = (initialSearchText: string) => {
   return {
     state: {
       isLoading,
-      results: data,
+      results: debouncedSearch ? data : [],
     },
     setSearchText: (text: string) => {
       setSearchText(text);
@@ -77,4 +77,3 @@ async function parseResponse(response: Response): Promise<SearchResult[]> {
 }
 
 export default useSearch;
-

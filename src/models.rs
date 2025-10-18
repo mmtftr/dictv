@@ -73,7 +73,7 @@ impl DictionaryEntry {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SearchResult {
     pub word: String,
-    pub definition: String,
+    pub definitions: Vec<String>, // Support multiple definitions
     pub language: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub edit_distance: Option<u8>,

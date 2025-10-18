@@ -1,0 +1,25 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background (transparent) -->
+
+  <!-- Open Book -->
+  <g transform="translate(256, 256)">
+    <!-- Left Page -->
+    <path d="M -120 -90 L -120 90 Q -120 100 -110 100 L -5 100 L -5 -90 Z" fill="#E8E8E8"/>
+
+    <!-- Right Page -->
+    <path d="M 120 -90 L 120 90 Q 120 100 110 100 L 5 100 L 5 -90 Z" fill="#FFFFFF"/>
+
+    <!-- Center Binding -->
+    <rect x="-5" y="-90" width="10" height="190" fill="#D0D0D0"/>
+
+    <!-- Bidirectional Arrow -->
+    <g transform="translate(0, 0)">
+      <!-- Arrow line -->
+      <path d="M -60 0 L 60 0" stroke="#5B9FFF" stroke-width="8" stroke-linecap="round"/>
+      <!-- Left arrowhead -->
+      <path d="M -50 -12 L -60 0 L -50 12" stroke="#5B9FFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <!-- Right arrowhead -->
+      <path d="M 50 -12 L 60 0 L 50 12" stroke="#5B9FFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </g>
+  </g>
+</svg>

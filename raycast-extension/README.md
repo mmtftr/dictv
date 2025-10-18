@@ -9,6 +9,8 @@ Search German-English dictionary with fuzzy matching directly from Raycast.
   - Fuzzy search (handles typos and spelling variations)
   - Exact search (precise matches only)
   - Prefix search (autocomplete-style)
+- **Grouped Definitions**: Multiple definitions for the same word are combined into a single entry
+- **Markdown Detail View**: Beautiful formatted view with all definitions
 - **Bidirectional**: Switch between German→English and English→German
 - **Search History**: Keep track of your searches and results
 - **Keyboard Shortcuts**: Fast navigation and actions
@@ -67,8 +69,9 @@ Go to Extension Preferences (⌘,) to configure:
 
 ### In Search View
 - `⌘.` - Copy word
-- `⌘⇧.` - Copy definition
-- `⌘⌥.` - Copy both word and definition
+- `⌘⇧.` - Copy all definitions
+- `⌘⌥.` - Copy word + definitions
+- `⌘D` - Toggle detail view
 - `⌘L` - Switch language direction
 - `⌘↵` - Add to history
 - `⌘⌫` - Remove from history (history items only)
