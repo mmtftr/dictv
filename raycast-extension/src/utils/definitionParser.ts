@@ -9,27 +9,27 @@ export function parseDefinition(definition: string): string {
   parsed = parsed.trim();
 
   // Extract and format pronunciation /.../
-  parsed = parsed.replace(/\/([^/]+)\//g, (match, pronunciation) => {
-    return `\n\n**Pronunciation:** /${pronunciation}/\n\n`;
+  parsed = parsed.replace(/\/([^/]+?)\//g, (match, pronunciation) => {
+    return "";
+    // return `\n\n**Pronunciation:** /${pronunciation}/\n\n`;
   });
 
   // Extract and format grammatical information <...>
   parsed = parsed.replace(/<([^>]+)>/g, (match, grammar) => {
     // Clean up grammar markers
-    const cleanGrammar = grammar
-      .replace(/,\s*/g, ", ")
-      .replace(/\bneut\b/g, "neuter")
-      .replace(/\bmasc\b/g, "masculine")
-      .replace(/\bfem\b/g, "feminine")
-      .replace(/\bn\b/g, "noun")
-      .replace(/\bv\b/g, "verb")
-      .replace(/\badj\b/g, "adjective")
-      .replace(/\badv\b/g, "adverb")
-      .replace(/\bsg\b/g, "singular")
-      .replace(/\bpl\b/g, "plural")
-      .replace(/\btrans\b/g, "transitive")
-      .replace(/\bintrans\b/g, "intransitive");
-    return `*[${cleanGrammar}]*`;
+    const cleanGrammar = grammar.replace(/,\s*/g, ", ");
+    // .replace(/\bneut\b/g, "neuter")
+    // .replace(/\bmasc\b/g, "masculine")
+    // .replace(/\bfem\b/g, "feminine")
+    // .replace(/\bn\b/g, "noun")
+    // .replace(/\bv\b/g, "verb")
+    // .replace(/\badj\b/g, "adjective")
+    // .replace(/\badv\b/g, "adverb")
+    // .replace(/\bsg\b/g, "singular")
+    // .replace(/\bpl\b/g, "plural")
+    // .replace(/\btrans\b/g, "transitive")
+    // .replace(/\bintrans\b/g, "intransitive");
+    return `_(${cleanGrammar})_`;
   });
 
   // Handle square brackets [ugs.], [adm.], etc. - these are usage labels
@@ -39,28 +39,23 @@ export function parseDefinition(definition: string): string {
 
   // Extract and format synonyms (in curly braces)
   let synonyms: string[] = [];
-  parsed = parsed.replace(/Synonyms?:\s*\{([^}]+)\}/g, (match, syns) => {
-    synonyms.push(...syns.split(",").map((s: string) => s.trim()));
-    return "";
-  });
-  parsed = parsed.replace(/\{([^}]+)\}/g, (match, syn) => {
-    if (!synonyms.includes(syn.trim())) {
-      synonyms.push(syn.trim());
-    }
+  parsed = parsed.replace(/Synonyms?:\s*((?:\{(?:[^}]+)\},?\s*)+)/g, (match, syns) => {
+    synonyms.push(...syns.split(",").map((s: string) => s.trim().replace(/[\{\}]/g, "")));
     return "";
   });
 
   // Extract "see:" references
   let seeAlso: string[] = [];
-  parsed = parsed.replace(/see:\s*\{([^}]+)\}/g, (match, refs) => {
-    seeAlso.push(...refs.split(",").map((s: string) => s.trim()));
+  parsed = parsed.replace(/see:\s*((?:\{(?:[^}]+)\},?\s*)+)/g, (match, refs) => {
+    seeAlso.push(...refs.split(",").map((s: string) => s.trim().replace(/[\{\}]/g, "")));
     return "";
   });
 
   // Extract and format quoted examples "..."
   let examples: string[] = [];
   parsed = parsed.replace(/"([^"]+)"\s*-\s*([^"]+?)(?="|$)/g, (match, german, english) => {
-    examples.push(`"${german.trim()}" → ${english.trim()}`);
+    examples.push(`${german.trim()}`);
+    examples.push(`  > ${english.trim()}`);
     return "";
   });
 
@@ -84,27 +79,27 @@ export function parseDefinition(definition: string): string {
 
   // Add examples section if we have any
   if (examples.length > 0) {
-    output += "\n\n**Examples:**\n";
+    output += "\n\n  - *Examples:*\n";
     examples.forEach((ex) => {
-      output += `- ${ex}\n`;
+      output += `    - ${ex}\n`;
     });
   }
 
   // Add synonyms section if we have any
   if (synonyms.length > 0) {
-    output += `\n**Synonyms:** ${synonyms.join(", ")}`;
+    output += `\n  - *Synonyms:* ${synonyms.join(", ")}`;
   }
 
   // Add see also section if we have any
   if (seeAlso.length > 0) {
-    output += `\n\n**See also:** ${seeAlso.join(", ")}`;
+    output += `\n\n  - *See also:* ${seeAlso.join(", ")}`;
   }
 
   // Add notes section if we have any
   if (notes.length > 0) {
-    output += "\n\n**Notes:**\n";
+    output += "\n\n  - *Notes:*\n";
     notes.forEach((note) => {
-      output += `- ${note}\n`;
+      output += `    - ${note}\n`;
     });
   }
 
@@ -115,21 +110,16 @@ export function formatDefinitionsAsMarkdown(word: string, definitions: string[] 
   const languageLabel = language === "de-en" ? "German → English" : "English → German";
 
   let markdown = `# ${word}\n\n`;
-  markdown += `**${languageLabel}**\n\n`;
 
   if (!definitions || definitions.length === 0) {
     markdown += "*No definition available*";
     return markdown;
   }
 
-  if (definitions.length === 1) {
-    markdown += parseDefinition(definitions[0]);
-  } else {
-    definitions.forEach((def, index) => {
-      markdown += `## Definition ${index + 1}\n\n`;
-      markdown += parseDefinition(def) + "\n\n";
-    });
-  }
+  definitions.forEach((def, index) => {
+    markdown += `**${index + 1}.** `;
+    markdown += parseDefinition(def) + "\n\n";
+  });
 
   return markdown;
 }
